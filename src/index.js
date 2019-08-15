@@ -18,13 +18,14 @@ export default class App extends Component {
 
     addDigit = n => {
         // ATUALIZAÇÃO DO DISPLAY
-        // Para não adicionar um novo ponto no display.
-        if (n === '.' && this.state.displayValue.includes('.')) {
-            return
-        }
+
         // Verifica se o valor atual do display é zero ou se o display pode ser limpo.
         const clearDisplay = this.state.displayValue === '0'
             || this.state.clearDisplay;
+        // Para não adicionar um novo ponto no display.
+        if (n === '.' && !clearDisplay && this.state.displayValue.includes('.')) {
+            return
+        }
         // Se puder limpar o display, ele será limpo, caso contrário o valor atual irá receber o valor do display.
         const currentValue = clearDisplay ? '' : this.state.displayValue;
         // Concatenamos o valor atual ao valor n.
@@ -50,7 +51,8 @@ export default class App extends Component {
     setOperation = operation => {
         if (this.state.current === 0) {
             this.setState({ operation, current: 1, clearDisplay: true });
-        } else {
+        }
+        else {
             const equals = operation === '=';
             const values = [...this.state.values];
             try {
@@ -60,8 +62,9 @@ export default class App extends Component {
                 values[0] = this.state.values[0];
             }
 
+
             values[1] = 0;
-            this.setOperation({
+            this.setState({
                 displayValue: `${values[0]}`,
                 operation: equals ? null : operation,
                 current: equals ? 0 : 1,
