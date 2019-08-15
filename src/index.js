@@ -5,21 +5,70 @@ import Button from './components/Button/index';
 import Display from './components/Display/index';
 import styles from './styles';
 
+const initialState = {
+    displayValue: '0',
+    clearDisplay: false,
+    operation: null,
+    values: [0, 0],
+    current: 0,
+}
+
 export default class App extends Component {
-    state = {
-        displayValue: '0'
-    };
+    state = { ...initialState };
 
     addDigit = n => {
-        this.setState({ displayValue: n });
+        // ATUALIZAÇÃO DO DISPLAY
+        // Para não adicionar um novo ponto no display.
+        if (n === '.' && this.state.displayValue.includes('.')) {
+            return
+        }
+        // Verifica se o valor atual do display é zero ou se o display pode ser limpo.
+        const clearDisplay = this.state.displayValue === '0'
+            || this.state.clearDisplay;
+        // Se puder limpar o display, ele será limpo, caso contrário o valor atual irá receber o valor do display.
+        const currentValue = clearDisplay ? '' : this.state.displayValue;
+        // Concatenamos o valor atual ao valor n.
+        const displayValue = currentValue + n;
+        // Atualizamos o valor do display com o valor digitado.
+        this.setState({ displayValue, clearDisplay: false });
+        // ATUALIZAÇÃO DOS OPERANDOS
+
+        if (n !== '.') {
+            // Guarda o valor digitado.
+            const newValue = parseFloat(displayValue);
+            const values = [...this.state.values];
+            // Atualiza o valor atual mais recente para o valor do display.
+            values[this.state.current] = newValue;
+            this.setState({ values });
+        }
     }
 
     clearMemory = () => {
-        this.setState({ displayValue: '0' })
+        this.setState({ ...initialState });
     }
 
     setOperation = operation => {
+        if (this.state.current === 0) {
+            this.setState({ operation, current: 1, clearDisplay: true });
+        } else {
+            const equals = operation === '=';
+            const values = [...this.state.values];
+            try {
+                values[0] =
+                    eval(`${values[0]} ${this.state.operation} ${values[1]}`);
+            } catch (error) {
+                values[0] = this.state.values[0];
+            }
 
+            values[1] = 0;
+            this.setOperation({
+                displayValue: `${values[0]}`,
+                operation: equals ? null : operation,
+                current: equals ? 0 : 1,
+                clearDisplay: !equals,
+                values
+            });
+        }
     }
 
     render() {
